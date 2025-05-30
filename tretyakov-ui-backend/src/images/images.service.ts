@@ -16,10 +16,15 @@ export class ImagesService {
   ) {}
 
   async createNewRow(original_name, path) {
-    return await this.imagesModel.create({
-      original_name,
-      path,
-    })
+    try {
+      return await this.imagesModel.create({
+        original_name,
+        path,
+      })
+    } catch (error) {
+      console.log(error)
+      throw new HttpException('Ошибка загрузки файла', HttpStatus.BAD_REQUEST)
+    }
   }
 
   async createFile({ buffer, originalname }: Express.Multer.File) {
@@ -47,8 +52,8 @@ export class ImagesService {
   }
 
   async getRowById(id: string) {
-    const row = await this.imagesModel.findOne({ where: { id } })
     try {
+      const row = await this.imagesModel.findOne({ where: { id } })
       if (!row || new Date(row.expires_at) < new Date()) {
         throw new HttpException(
           'Файл не найден, или его срок действия истек',
