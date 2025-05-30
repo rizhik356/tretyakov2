@@ -1,0 +1,56 @@
+networks:
+  prod:
+
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80" #если сервер работает на https меняем на 433:433
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+    depends_on:
+      - frontend
+      - backend
+      - postgres
+    networks:
+      - prod
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - ./tretyakov-ui-backend/.env  # Используем .env для бэкенда
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - prod
+
+  backend:
+    build:
+      context: ./tretyakov-ui-backend
+    restart: always
+    env_file:
+      - ./tretyakov-ui-backend/.env  # Используем .env для бэкенда
+    depends_on:
+      - postgres
+    ports:
+      - "9000:9000"
+    networks:
+      - prod
+
+  frontend:
+    build:
+      context: ./tretyakov-galery-ui
+    restart: always
+    env_file:
+      - ./tretyakov-galery-ui/.env  # Используем .env для фронтенда
+    ports:
+      - "8080:8080"
+    networks:
+      - prod
+
+volumes:
+  postgres_data:
